@@ -381,6 +381,35 @@ class Builder {
 		$this->query->from($model->getTable());
 	}
 
+	public function whereRelated($relName, $relValues)
+	{
+	    $relValues = is_array($relValues) ? $relValues : array($relValues);
+
+	    if (method_exists($this->model, $relName)) {
+
+	        $pivot_obj = $this->model->$relName();
+	        $localTable = $this->model->getTable();
+	        $joinTable = $pivot_obj->getTable();
+	        $foreignKey = $pivot_obj->getForeignKey();
+	        $otherKey = $pivot_obj->getOtherKey();
+	        $pkName = $this->model->getKeyName();
+
+	        $self = $this;
+	        foreach ($relValues as $relValue) {
+	            
+	            $this->whereExists(function($query) use ($self, $joinTable, $foreignKey, $localTable, $otherKey, $relValue) {
+	                $query->select('id');
+	                $query->from($joinTable);
+	                
+	                $query->where("$foreignKey` = `$localTable.id` and `$otherKey", '=', $relValue);
+
+	            });
+	        }
+	        
+	    }
+	    
+	    return $this;
+	}
 	/**
 	 * Dynamically handle calls into the query instance.
 	 *
