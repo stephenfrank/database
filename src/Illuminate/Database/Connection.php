@@ -401,14 +401,16 @@ class Connection implements ConnectionInterface {
 	{
 		$start = microtime(true);
 
+		$this->logQuery($query, $bindings, 0);
+
 		// To execute the statement, we'll simply call the callback, which will actually
 		// run the SQL against the PDO connection. Then we can calculate the time it
 		// took to execute and log the query SQL, bindings and time in our memory.
 		$result = $callback($this, $query, $bindings);
 
+
 		$time = number_format((microtime(true) - $start) * 1000, 2);
 
-		$this->logQuery($query, $bindings, $time);
 
 		return $result;
 	}
