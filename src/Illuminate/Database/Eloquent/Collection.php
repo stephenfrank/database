@@ -27,6 +27,22 @@ class Collection implements ArrayAccess, ArrayableInterface, Countable, Iterator
 	}
 
 	/**
+	 * Load a set of relationships onto the collection.
+	 *
+	 * @param  dynamic  string
+	 * @return void
+	 */
+	public function load()
+	{
+		if (count($this->items) > 0)
+		{
+			$query = $this->first()->newQuery()->with(func_get_args());
+
+			$this->items = $query->eagerLoadRelations($this->items);
+		}
+	}
+
+	/**
 	 * Add an item to the collection.
 	 *
 	 * @param  mixed  $item

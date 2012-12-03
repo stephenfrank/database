@@ -71,6 +71,23 @@ class QueryBuilderTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testRawWheres()
+	{
+		$builder = $this->getBuilder();
+		$builder->select('*')->from('users')->whereRaw('id = ? or email = ?', array(1, 'foo'));
+		$this->assertEquals('select * from "users" where id = ? or email = ?', $builder->toSql());
+		$this->assertEquals(array(0 => 1, 1 => 'foo'), $builder->getBindings());	
+	}
+
+	public function testRawOrWheres()
+	{
+		$builder = $this->getBuilder();
+		$builder->select('*')->from('users')->where('id', '=', 1)->orWhereRaw('email = ?', array('foo'));
+		$this->assertEquals('select * from "users" where "id" = ? or email = ?', $builder->toSql());
+		$this->assertEquals(array(0 => 1, 1 => 'foo'), $builder->getBindings());	
+	}
+
+
 	public function testBasicWhereIns()
 	{
 		$builder = $this->getBuilder();
@@ -319,6 +336,22 @@ class QueryBuilderTest extends PHPUnit_Framework_TestCase {
 		$paginator->shouldReceive('make')->once()->with(array('foo'), 10, 15)->andReturn(array('results'));
 
 		$this->assertEquals(array('results'), $builder->paginate(15, array('*')));
+	}
+
+
+	public function testPaginateCorrectlyCreatesPaginatorInstanceForGroupedQuery()
+	{
+		$connection = m::mock('Illuminate\Database\ConnectionInterface');
+		$grammar = m::mock('Illuminate\Database\Query\Grammars\Grammar');
+		$processor = m::mock('Illuminate\Database\Query\Processors\Processor');
+		$builder = $this->getMock('Illuminate\Database\Query\Builder', array('get'), array($connection, $grammar, $processor));
+		$paginator = m::mock('Illuminate\Pagination\Environment');
+		$paginator->shouldReceive('getCurrentPage')->once()->andReturn(2);
+		$connection->shouldReceive('getPaginator')->once()->andReturn($paginator);
+		$builder->expects($this->once())->method('get')->with($this->equalTo(array('*')))->will($this->returnValue(array('foo', 'bar', 'baz')));
+		$paginator->shouldReceive('make')->once()->with(array('baz'), 3, 2)->andReturn(array('results'));
+
+		$this->assertEquals(array('results'), $builder->groupBy('foo')->paginate(2, array('*')));
 	}
 
 

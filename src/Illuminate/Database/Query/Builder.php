@@ -117,13 +117,13 @@ class Builder {
 	 *
 	 * @var array
 	 */
-	protected $operators = array('=', '<', '>', '<=', '>=', 'like', 'not like');
+	protected $operators = array('=', '<', '>', '<=', '>=', '<>', '!=', 'like', 'not like');
 
 	/**
 	 * Create a new query builder instance.
 	 *
 	 * @param  Illuminate\Database\ConnectionInterface  $connection
-	 * @param  Illuminate\Databaase\Query\Grammar  $grammar
+	 * @param  Illuminate\Databaase\Query\Grammars\Grammar  $grammar
 	 * @param  Illuminate\Database\Query\Processors\Processor  $processor
 	 * @return void
 	 */
@@ -283,6 +283,37 @@ class Builder {
 	public function orWhere($column, $operator = null, $value = null)
 	{
 		return $this->where($column, $operator, $value, 'or');
+	}
+
+	/**
+	 * Add a raw where clause to the query.
+	 *
+	 * @param  string  $sql
+	 * @param  array   $bindings
+	 * @param  string  $boolean
+	 * @return Illuminate\Database\Query\Builder
+	 */
+	public function whereRaw($sql, array $bindings = array(), $boolean = 'and')
+	{
+		$type = 'raw';
+
+		$this->wheres[] = compact('type', 'sql', 'boolean');
+
+		$this->bindings = array_merge($this->bindings, $bindings);
+
+		return $this;
+	}
+
+	/**
+	 * Add a raw or where clause to the query.
+	 *
+	 * @param  string  $sql
+	 * @param  array   $bindings
+	 * @return Illuminate\Database\Query\Builder
+	 */
+	public function orWhereRaw($sql, array $bindings = array())
+	{
+		return $this->whereRaw($sql, $bindings, 'or');
 	}
 
 	/**
@@ -669,8 +700,8 @@ class Builder {
 	public function get($columns = array('*'))
 	{
 		// If no columns have been specified for the select staement, we will set them
-		// here to either the passed columns of the standard default of retrieving
-		// all of the columns on the table using the wildcard column character.
+		// here to either the passed columns, or the standard default of retrieving
+		// all of the columns on the table using the "wildcard" column character.
 		if (is_null($this->columns))
 		{
 			$this->columns = $columns;
@@ -734,6 +765,61 @@ class Builder {
 	{
 		$paginator = $this->connection->getPaginator();
 
+		if (isset($this->groups))
+		{
+			return $this->groupedPaginate($paginator, $perPage, $columns);
+		}
+		else
+		{
+			return $this->ungroupedPaginate($paginator, $perPage, $columns);
+		}
+	}
+
+	/**
+	 * Create a paginator for a grouped pagination statement.
+	 *
+	 * @param  Illuminate\Pagination\Environment  $paginator
+	 * @param  int    $perPage
+	 * @param  array  $columns
+	 * @return Illuminate\Pagination\Paginator
+	 */
+	protected function groupedPaginate($paginator, $perPage, $columns)
+	{
+		$results = $this->get($columns);
+
+		return $this->buildRawPaginator($paginator, $results, $perPage);
+	}
+
+	/**
+	 * Build a paginator instance from a raw result array.
+	 *
+	 * @param  Illuminate\Pagination\Environment  $paginator
+	 * @param  array  $results
+	 * @param  int    $perPage
+	 * @return Illuminate\Pagination\Paginator
+	 */
+	public function buildRawPaginator($paginator, $results, $perPage)
+	{
+		// For queries which have a group by, we will actually retrieve the entire set
+		// of rows from the table and "slice" them via PHP. This is inefficient and
+		// the developer must be aware of this behavior; however, it's an option.
+		$start = ($paginator->getCurrentPage() - 1) * $perPage;
+
+		$sliced = array_slice($results, $start, $perPage);
+
+		return $paginator->make($sliced, count($results), $perPage);
+	}
+
+	/**
+	 * Create a paginator for an un-grouped pagination statement.
+	 *
+	 * @param  Illuminate\Pagination\Environment  $paginator
+	 * @param  int    $perPage
+	 * @param  array  $columns
+	 * @return Illuminate\Pagination\Paginator
+	 */
+	protected function ungroupedPaginate($paginator, $perPage, $columns)
+	{
 		$total = $this->getPaginationCount();
 
 		// Once we have the total number of records to be paginated, we can grab the
