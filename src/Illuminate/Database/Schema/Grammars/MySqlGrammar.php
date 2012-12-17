@@ -117,6 +117,18 @@ class MySqlGrammar extends Grammar {
 	}
 
 	/**
+	 * Compile a drop table (if exists) command.
+	 *
+	 * @param  Illuminate\Database\Schema\Blueprint  $blueprint
+	 * @param  Illuminate\Support\Fluent  $command
+	 * @return string
+	 */
+	public function compileDropIfExists(Blueprint $blueprint, Fluent $command)
+	{
+		return 'drop table if exists '.$this->wrapTable($blueprint);
+	}
+
+	/**
 	 * Compile a drop column command.
 	 *
 	 * @param  Illuminate\Database\Schema\Blueprint  $blueprint
@@ -264,6 +276,17 @@ class MySqlGrammar extends Grammar {
 	protected function typeBoolean(Fluent $column)
 	{
 		return 'tinyint';
+	}
+
+	/**
+	 * Create the column definition for a enum type.
+	 *
+	 * @param  Illuminate\Support\Fluent  $column
+	 * @return string
+	 */
+	protected function typeEnum(Fluent $column)
+	{
+		return "enum('".implode("', '", $column->allowed)."')";
 	}
 
 	/**

@@ -43,6 +43,17 @@ class PostgresSchemaGrammarTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testDropTableIfExists()
+	{
+		$blueprint = new Blueprint('users');
+		$blueprint->dropIfExists();
+		$statements = $blueprint->toSql($this->getGrammar());
+
+		$this->assertEquals(1, count($statements));
+		$this->assertEquals('drop table if exists "users"', $statements[0]);
+	}
+
+
 	public function testDropColumn()
 	{
 		$blueprint = new Blueprint('users');
@@ -214,7 +225,7 @@ class PostgresSchemaGrammarTest extends PHPUnit_Framework_TestCase {
 		$statements = $blueprint->toSql($this->getGrammar());
 
 		$this->assertEquals(1, count($statements));
-		$this->assertEquals('alter table "users" add column "foo" bigint not null', $statements[0]);
+		$this->assertEquals('alter table "users" add column "foo" integer not null', $statements[0]);
 
 		$blueprint = new Blueprint('users');
 		$blueprint->integer('foo', true);
@@ -254,7 +265,18 @@ class PostgresSchemaGrammarTest extends PHPUnit_Framework_TestCase {
 		$statements = $blueprint->toSql($this->getGrammar());
 
 		$this->assertEquals(1, count($statements));
-		$this->assertEquals('alter table "users" add column "foo" tinyint not null', $statements[0]);
+		$this->assertEquals('alter table "users" add column "foo" boolean not null', $statements[0]);
+	}
+
+
+	public function testAddingEnum()
+	{
+		$blueprint = new Blueprint('users');
+		$blueprint->enum('foo', array('bar', 'baz'));
+		$statements = $blueprint->toSql($this->getGrammar());
+
+		$this->assertEquals(1, count($statements));
+		$this->assertEquals('alter table "users" add column "foo" varchar(255) not null', $statements[0]);
 	}
 
 

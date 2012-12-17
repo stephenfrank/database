@@ -173,6 +173,16 @@ class Blueprint {
 	}
 
 	/**
+	 * Indicate that the table should be dropped if it exists.
+	 *
+	 * @return Illuminate\Support\Fluent
+	 */
+	public function dropIfExists()
+	{
+		return $this->addCommand('dropIfExists');
+	}
+
+	/**
 	 * Indicate that the given columns should be dropped.
 	 *
 	 * @param  string|array  $columns
@@ -379,6 +389,18 @@ class Blueprint {
 	public function boolean($column)
 	{
 		return $this->addColumn('boolean', $column);
+	}
+
+	/**
+	 * Create a new enum column on the table.
+	 *
+	 * @param  string  $column
+	 * @param  array   $allowed
+	 * @return Illuminate\Support\Fluent
+	 */
+	public function enum($column, array $allowed)
+	{
+		return $this->addColumn('enum', $column, compact('allowed'));
 	}
 
 	/**
