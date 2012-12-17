@@ -141,6 +141,7 @@ class BelongsToMany extends Relation {
 	 */
 	public function addConstraints()
 	{
+		$this->query->select($this->getSelectColumns());
 		$this->setJoin()->setWhere();
 	}
 
@@ -193,7 +194,7 @@ class BelongsToMany extends Relation {
 		$key = $baseTable.'.'.$this->related->getKeyName();
 
 		$this->query->join($this->table, $key, '=', $this->getOtherKey());
-
+		
 		return $this;
 	}
 
