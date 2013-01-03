@@ -489,7 +489,7 @@ class Builder {
 
 
 	    } else {
-	    	throw new \Exception("Relationship '$relName' does not exist");
+	    	throw new \InvalidArgumentException("Relationship '$relName' does not exist");
 	    }
 	    
 	    return $this;
