@@ -3,6 +3,18 @@
 class MySqlConnection extends Connection {
 
 	/**
+	 * Get a schema builder instance for the connection.
+	 *
+	 * @return Illuminate\Database\Schema\Builder
+	 */
+	public function getSchemaBuilder()
+	{
+		if (is_null($this->schemaGrammar)) { $this->useDefaultSchemaGrammar(); }
+
+		return new Schema\MySqlBuilder($this);
+	}
+
+	/**
 	 * Get the default query grammar instance.
 	 *
 	 * @return Illuminate\Database\Query\Grammars\Grammars\Grammar

@@ -5,6 +5,7 @@ use ArrayAccess;
 use ArrayIterator;
 use IteratorAggregate;
 use Illuminate\Support\Contracts\JsonableInterface;
+use Illuminate\Support\Contracts\ArrayableInterface;
 
 class Collection implements ArrayAccess, ArrayableInterface, Countable, IteratorAggregate, JsonableInterface {
 
@@ -46,11 +47,13 @@ class Collection implements ArrayAccess, ArrayableInterface, Countable, Iterator
 	 * Add an item to the collection.
 	 *
 	 * @param  mixed  $item
-	 * @return void
+	 * @return Illuminate\Database\Eloquent\Collection
 	 */
 	public function add($item)
 	{
 		$this->items[] = $item;
+
+		return $this;
 	}
 
 	/**
@@ -80,11 +83,12 @@ class Collection implements ArrayAccess, ArrayableInterface, Countable, Iterator
 	/**
 	 * Get the collection of items as JSON.
 	 *
+	 * @param  int  $options
 	 * @return string
 	 */
-	public function toJson()
+	public function toJson($options = 0)
 	{
-		return json_encode($this->toArray());
+		return json_encode($this->toArray(), $options);
 	}
 
 	/**

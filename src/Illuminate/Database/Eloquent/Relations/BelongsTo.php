@@ -47,7 +47,7 @@ class BelongsTo extends Relation {
 	{
 		// For belongs to relationships, which are essentially the inverse of has one
 		// or has many relationships, we need to actually query on the primary key
-		// of the related model matching on the foreign key thats on the parent.
+		// of the related models matching on the foreign key that's on a parent.
 		$key = $this->related->getKeyName();
 
 		$this->query->where($key, '=', $this->parent->{$this->foreignKey});
@@ -78,6 +78,8 @@ class BelongsTo extends Relation {
 	protected function getEagerModelKeys(array $models)
 	{
 		$keys = array();
+
+		if (count($models) == 0) return array(0);
 
 		// First we need to gather all of the keys from the parent models so we know what
 		// to query for via the eager loading query. We will add them to an array then

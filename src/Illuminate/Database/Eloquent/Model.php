@@ -6,6 +6,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Contracts\JsonableInterface;
+use Illuminate\Support\Contracts\ArrayableInterface;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,7 +35,7 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	 *
 	 * @var string
 	 */
-	protected $key = 'id';
+	protected $primaryKey = 'id';
 
 	/**
 	 * The number of models to return for pagination.
@@ -127,7 +128,7 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	{
 		foreach ($attributes as $key => $value)
 		{
-			// The deveeloper may choose to place some attributes in the "fillable"
+			// The developers may choose to place some attributes in the "fillable"
 			// array, which means only those attributes may be set through mass
 			// assignment to the model, and all others will just be ignored.
 			if ($this->isFillable($key))
@@ -233,7 +234,7 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	 * Being querying a model with eager loading.
 	 *
 	 * @param  array  $relations
-	 * @return ?
+	 * @return Illuminate\Database\Eloquent\Builder
 	 */
 	public static function with($relations)
 	{
@@ -378,7 +379,7 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 
 		// If no table name was provided, we can guess it by concatenating the two
 		// models using underscores in alphabetical order. The two model names
-		// are transformed to snake case from thecir default CamelCase also.
+		// are transformed to snake case from their default CamelCase also.
 		if (is_null($table))
 		{
 			$table = $this->joiningTable($related);
@@ -411,7 +412,7 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 
 		// Now that we have the model names in an array we can just sort them and
 		// use the implode function to join them together with an underscores,
-		// which is typically used by convention within the datbase systems.
+		// which is typically used by convention within the database system.
 		sort($models);
 
 		return strtolower(implode('_', $models));
@@ -505,6 +506,54 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	}
 
 	/**
+	 * Getter for the created_at timestamp.
+	 * 
+	 * @return DateTime
+	 */
+	protected function getCreatedAt()
+	{
+		return $this->asDateTime('created_at');
+	}
+
+	/**
+	 * Getter for the updated_at timestamp.
+	 * 
+	 * @return DateTime
+	 */
+	protected function getUpdatedAt()
+	{
+		return $this->asDateTime('updated_at');
+	}
+
+	/**
+	 * Return a timestamp as DateTime object.
+	 * 
+	 * @param  string  $key
+	 * @return DateTime
+	 */
+	protected function asDateTime($key)
+	{
+		$value = $this->attributes[$key];
+
+		if ( ! $value instanceof DateTime)
+		{
+			$format = $this->getDateFormat();
+
+			return DateTime::createFromFormat($format, $value);
+		}
+	}
+	
+	/**
+	 * Get the format for databsae stored dates.
+	 * 
+	 * @return string
+	 */
+	protected function getDateFormat()
+	{
+		return $this->getConnection()->getQueryGrammar()->getDateFormat();
+	}
+
+	/**
 	 * Get a new query builder for the model's table.
 	 *
 	 * @return Illuminate\Database\Eloquent\Builder
@@ -584,7 +633,7 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	 */
 	public function getKeyName()
 	{
-		return $this->key;
+		return $this->primaryKey;
 	}
 
 	/**
@@ -703,13 +752,14 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	}
 
 	/**
-	 * Conver the model instance to JSON.
+	 * Convert the model instance to JSON.
 	 *
+	 * @param  int  $options
 	 * @return string
 	 */
-	public function toJson()
+	public function toJson($options = 0)
 	{
-		return json_encode($this->toArray());
+		return json_encode($this->toArray(), $options);
 	}
 
 	/**
@@ -721,7 +771,22 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	{
 		$attributes = array_diff_key($this->attributes, array_flip($this->hidden));
 
-		return array_merge($attributes, $this->relationsToArray());
+		return array_merge($this->attributesToArray($attributes), $this->relationsToArray());
+	}
+
+	/**
+	 * Get the model's attributes in array form (mutators are called).
+	 *
+	 * @return array
+	 */
+	protected function attributesToArray(array $attributes)
+	{
+		foreach (array_keys($attributes) as $key)
+		{
+			$attributes[$key] = $this->getPlainAttribute($key);
+		}
+
+		return $attributes;
 	}
 
 	/**
@@ -736,7 +801,7 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 		foreach ($this->relations as $key => $value)
 		{
 			// If the values implements the Arrayable interface we can just call this
-			// toArray method on the instances, which will conver both models and
+			// toArray method on the instances which will convert both models and
 			// collections to their proper array form and we'll set the values.
 			if ($value instanceof ArrayableInterface)
 			{
@@ -869,7 +934,7 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	 * @param  bool   $sync
 	 * @return void
 	 */
-	public function setAttributes(array $attributes, $sync = false)
+	public function setRawAttributes(array $attributes, $sync = false)
 	{
 		$this->attributes = $attributes;
 

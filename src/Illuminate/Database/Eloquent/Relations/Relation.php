@@ -179,7 +179,11 @@ abstract class Relation {
 	 */
 	public function __call($method, $parameters)
 	{
-		return call_user_func_array(array($this->query, $method), $parameters);
+		$result = call_user_func_array(array($this->query, $method), $parameters);
+
+		if ($result === $this->query) return $this;
+
+		return $result;
 	}
 
 }

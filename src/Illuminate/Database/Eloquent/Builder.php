@@ -144,7 +144,7 @@ class Builder {
 	{
 		$total = $this->query->getPaginationCount();
 
-		// Once we have the paginator we need to set the limit and offet values for
+		// Once we have the paginator we need to set the limit and offset values for
 		// the query so we can get the properly paginated items. Once we have an
 		// array of items we can create the paginator instances for the items.
 		$page = $paginator->getCurrentPage();
@@ -178,7 +178,7 @@ class Builder {
 		{
 			$models[] = $model = $this->model->newExisting();
 
-			$model->setAttributes((array) $result, true);
+			$model->setRawAttributes((array) $result, true);
 
 			$model->setConnection($connection);
 		}
@@ -254,7 +254,7 @@ class Builder {
 	{
 		$query = $this->getModel()->$relation();
 
-		// If there are nosted relationships set on the query, we will put those onto
+		// If there are nested relationships set on the query, we will put those onto
 		// the query instances so that they can be handled after this relationship
 		// is loaded. In this way they will all trickle down as they are loaded.
 		$nested = $this->nestedRelations($relation);
@@ -292,13 +292,15 @@ class Builder {
 	}
 
 	/**
-	 * Set the relationships that should be eaager loaded.
+	 * Set the relationships that should be eager loaded.
 	 *
-	 * @param  array  $relations
+	 * @param  dynamic  $relation
 	 * @return Illuminate\Database\Eloquent\Builder
 	 */
-	public function with(array $relations)
+	public function with($relations)
 	{
+		if (is_string($relations)) $relations = func_get_args();
+
 		$this->eagerLoad = $this->parseRelations($relations);
 
 		return $this;
@@ -327,7 +329,7 @@ class Builder {
 			}
 
 			// We need to separate out any nested includes. Which allows the developers
-			// to load deep relatoinships using "dots" without stating each level of
+			// to load deep relationships using "dots" without stating each level of
 			// the relationship with its own key in the array of eager load names.
 			$results = $this->parseNestedRelations($name, $results);
 
@@ -386,7 +388,7 @@ class Builder {
 	}
 
 	/**
-	 * Get the relationships being eagerly laoded.
+	 * Get the relationships being eagerly loaded.
 	 *
 	 * @return array
 	 */
