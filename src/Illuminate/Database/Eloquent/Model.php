@@ -487,11 +487,13 @@ abstract class Model implements ArrayableInterface, JsonableInterface {
 	 */
 	protected function updateTimestamps()
 	{
-		$this->updated_at = $this->freshTimestamp();
+		$timestamp = $this->freshTimestamp();
+
+		$this->updated_at = $timestamp;
 
 		if ( ! $this->exists)
 		{
-			$this->created_at = $this->updated_at;
+			$this->created_at = $timestamp;
 		}
 	}
 
