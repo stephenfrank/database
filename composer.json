@@ -1,11 +1,7 @@
 {
     "name": "illuminate/database",
     "description": "An elegant database abstraction library.",
-<<<<<<< HEAD
-    "keywords": ["laravel"],
-=======
     "keywords": ["laravel", "database", "sql", "orm"],
->>>>>>> 764710711e9c2406e9a50452cdf06a868a56e4f6
     "authors": [
         {
             "name": "Taylor Otwell",
@@ -14,28 +10,6 @@
     ],
     "require": {
         "php": ">=5.3.0",
-<<<<<<< HEAD
-        "illuminate/events": "1.2.*",
-        "illuminate/support": "1.2.*"
-    },
-    "require-dev": {
-        "illuminate/console": "1.2.*",
-        "illuminate/filesystem": "1.2.*",
-        "illuminate/pagination": "1.2.*",
-        "illuminate/support": "1.2.*",
-        "mockery/mockery": "0.7.2"
-    },
-    "autoload": {
-        "psr-0": {"Illuminate\\Database": "src/"}
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.2-dev"
-        }
-    },
-    "minimum-stability": "dev"
-}
-=======
         "illuminate/events": "4.0.x",
         "illuminate/support": "4.0.x"
     },
@@ -59,4 +33,3 @@
     },
     "minimum-stability": "dev"
 }
->>>>>>> 764710711e9c2406e9a50452cdf06a868a56e4f6
